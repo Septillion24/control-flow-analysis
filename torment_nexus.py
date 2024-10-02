@@ -66,12 +66,10 @@ def preprocess_binary(binary_file:str) -> Data:
         cfg = angr_project.analyses.CFGFast() 
 
         functions = list(angr_project.kb.functions.values())
-        function_addr_to_index = {function.addr: idx for idx, function in enumerate(functions)}  # Simplified mapping
+        function_addr_to_index = {function.addr: idx for idx, function in enumerate(functions)} 
 
         nodes = []
         for function in functions:
-            # Extract function features
-            # For example, get instruction mnemonics
             instructions = []
             for block in function.blocks:
                 capstone_block = block.capstone
@@ -79,13 +77,11 @@ def preprocess_binary(binary_file:str) -> Data:
                     instructions.append(insn.mnemonic)
             instruction_sequence = ' '.join(instructions)
 
-            # Use instruction sequence or function name for embedding
             embedding = embedding_model.encode(instruction_sequence)
             nodes.append(embedding)
 
-        # Build edges based on function calls using the call graph
         edge_index = []
-        callgraph = angr_project.kb.callgraph  # Use the call graph from the knowledge base
+        callgraph = angr_project.kb.callgraph
         for src_addr, dst_addr in callgraph.edges():
             src_idx = function_addr_to_index.get(src_addr)
             dst_idx = function_addr_to_index.get(dst_addr)
@@ -98,8 +94,6 @@ def preprocess_binary(binary_file:str) -> Data:
         else:
             edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
 
-        # label = 1 if isMalware else 0
-        # print(label)
         data = Data(x=node_embeddings, edge_index=edge_index, dtype=torch.long)
         return data
     else:
@@ -125,7 +119,7 @@ def get_train_test_split(data_list: list) -> Tuple[list[Data], list[Data]]:
     train_data, test_data = train_test_split(
         data_list, test_size=0.2, random_state=42,
         stratify=[d.y.item() for d in data_list]
-    )  # Added data splitting
+    )
     return train_data, test_data
 
 def get_model() -> GIN:
@@ -133,9 +127,9 @@ def get_model() -> GIN:
     return model
 
 def train_model(model: GIN, train_data: list[Data], test_data: list[Data]):
-    
-    train_loader = DataLoader(train_data, batch_size=32, shuffle=True)  # Changed to use train_data
-    test_loader = DataLoader(test_data, batch_size=32, shuffle=False)  # Added test_loader
+
+    train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
+    test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss_fn = torch.nn.CrossEntropyLoss()
@@ -143,14 +137,14 @@ def train_model(model: GIN, train_data: list[Data], test_data: list[Data]):
     epochs = 10
 
     for epoch in range(epochs):
-        model.train()  # Set model to training mode
+        model.train()  
         for batch in train_loader:
             optimizer.zero_grad()
             output = model(batch)
             loss = loss_fn(output, batch.y)
             loss.backward()
             optimizer.step()
-        # Evaluate on test set after each epoch
+       
         model.eval()
         all_preds = []
         all_labels = []
@@ -161,7 +155,7 @@ def train_model(model: GIN, train_data: list[Data], test_data: list[Data]):
                 all_preds.extend(preds.cpu().numpy())
                 all_labels.extend(batch.y.cpu().numpy())
         print(f"Epoch {epoch+1}/{epochs}")
-        print(classification_report(all_labels, all_preds))  # Added evaluation
+        print(classification_report(all_labels, all_preds)) 
 
 def save_model_weights(model: GIN, model_path: str = './gin_model_weights.pth'):
     torch.save(model.state_dict(), model_path)
@@ -171,7 +165,7 @@ def classify_binary(model: GIN = None, binary_file_path: str = './binaries/malwa
 
     if model == None:
         model = GIN()
-        model.load_state_dict(torch.load('./gin_model_weights.pth'))  # Load the weights
+        model.load_state_dict(torch.load('./gin_model_weights.pth')) 
         model.eval()
 
     new_data = preprocess_binary(binary_file_path)
