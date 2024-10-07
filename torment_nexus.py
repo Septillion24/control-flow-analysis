@@ -59,15 +59,15 @@ class TormentNexus:
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             print(device)
             
-            embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2') 
+            embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
             embedding_model = embedding_model.to(device) 
             print(f"Processing executable {binary_file}")
             
             angr_project = angr.Project(binary_file, auto_load_libs=False)
-            cfg = angr_project.analyses.CFGFast() 
+            cfg = angr_project.analyses.CFGFast()
 
             functions = list(angr_project.kb.functions.values())
-            function_addr_to_index = {function.addr: idx for idx, function in enumerate(functions)} 
+            function_addr_to_index = {function.addr: idx for idx, function in enumerate(functions)}
 
             nodes = []
             for function in functions:
