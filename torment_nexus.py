@@ -105,14 +105,21 @@ class TormentNexus:
         data_list: list[Data] = []
 
         for binary_file in os.listdir(f"{binary_dir}/malware"):
-            data = TormentNexus.preprocess_binary(f"{binary_dir}/malware/{binary_file}")
-            data.y = 1
-            data_list.append(data)
+            try:
+                data = TormentNexus.preprocess_binary(f"{binary_dir}/malware/{binary_file}")
+                data.y = 1
+                data_list.append(data)
+            except:
+                ''
 
         for binary_file in os.listdir(f"{binary_dir}/benign"):
-            data = TormentNexus.preprocess_binary(f"{binary_dir}/benign/{binary_file}")
-            data.y = 0
-            data_list.append(data)
+            try:
+                data = TormentNexus.preprocess_binary(f"{binary_dir}/benign/{binary_file}")
+                data.y = 0
+                data_list.append(data)
+            except:
+                ''
+            
         
         return data_list
 
