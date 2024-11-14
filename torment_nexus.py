@@ -143,7 +143,7 @@ class TormentNexus:
         loss_fn = torch.nn.CrossEntropyLoss()
 
         epochs = 10
-
+        text_log = ""
         for epoch in range(epochs):
             model.train()  
             for batch in train_loader:
@@ -163,7 +163,11 @@ class TormentNexus:
                     all_preds.extend(preds.cpu().numpy())
                     all_labels.extend(batch.y.cpu().numpy())
             print(f"Epoch {epoch+1}/{epochs}")
-            print(classification_report(all_labels, all_preds)) 
+            text_line = classification_report(all_labels, all_preds)
+            test_log = test_log + "Epoch {epoch+1}/{epochs}\n" + text_line  +"\n"
+            print(text_line)
+             
+        return test_log
 
     def save_model_weights(model: GIN, model_path: str = './gin_model_weights.pth'):
         torch.save(model.state_dict(), model_path)
